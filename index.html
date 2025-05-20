@@ -30,11 +30,17 @@
     let renderer = new THREE.WebGLRenderer({ canvas: document.querySelector('#webgl'), alpha: true, antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
 
-    let ring;
+    let ring1, ring2;
     const loader = new GLTFLoader();
     loader.load('ring.glb', function (gltf) {
-      ring = gltf.scene;
-      scene.add(ring);
+      ring1 = gltf.scene.clone();
+      ring2 = gltf.scene.clone();
+      
+      ring1.position.x = 0.1;
+      ring2.position.x = -0.1;
+
+      scene.add(ring1);
+      scene.add(ring2);
     });
 
     window.addEventListener('resize', () => {
@@ -45,20 +51,16 @@
 
     function animate() {
       requestAnimationFrame(animate);
+      const scrollY = window.scrollY / window.innerHeight;
 
-      if (ring) {
-        let scrollY = window.scrollY / window.innerHeight;
+      if (ring1 && ring2) {
+        const splitAmount = Math.min(scrollY, 1) * 1.2;
 
-        // Fake splitting effect
-        ring.rotation.y += 0.005;
-        ring.position.y = Math.sin(scrollY * Math.PI) * 0.5;
-        ring.scale.setScalar(1 + scrollY * 0.2);
+        ring1.position.x = 0.1 + splitAmount;
+        ring2.position.x = -0.1 - splitAmount;
 
-        ring.traverse(child => {
-          if (child.isMesh && child.material.emissive) {
-            child.material.emissiveIntensity = 0.2 + Math.sin(scrollY * 3) * 0.3;
-          }
-        });
+        ring1.rotation.y += 0.005;
+        ring2.rotation.y += 0.005;
 
         document.getElementById('overlay').style.opacity = Math.max(0, 1 - scrollY * 2);
       }

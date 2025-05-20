@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ring Scroll Animation</title>
+  <style>
+    body, html { margin: 0; height: 100%; overflow-x: hidden; font-family: sans-serif; }
+    canvas { display: block; }
+    section { height: 100vh; display: flex; align-items: center; justify-content: center; font-size: 2em; padding: 2rem; text-align: center; }
+    #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: flex; align-items: center; justify-content: center; color: white; z-index: 10; text-shadow: 0 0 10px #000; }
+  </style>
+</head>
+<body>
+  <div id="overlay">This is not just a ring…</div>
+  <canvas id="webgl"></canvas>
+  <section style="background:#111; color:#fff">Crafted from aerospace-grade carbon fiber and advanced ceramic…</section>
+  <section style="background:#222; color:#fff">Powered by an embedded NFC chip, seamlessly integrated across the band…</section>
+  <section style="background:#333; color:#fff">Built to endure. Waterproof. Durable. Intelligent.</section>
+  <section style="background:#444; color:#fff">One tap. Instant connection.</section>
+  <section style="background:#000; color:#fff">All this, inside a single tap.<br><button>Get Yours</button></section>
+  <script type="module">
+    import * as THREE from 'https://cdn.skypack.dev/three@0.152.2';
+    import { GLTFLoader } from 'https://cdn.skypack.dev/three/examples/jsm/loaders/GLTFLoader.js';
+
+    let scene = new THREE.Scene();
+    let camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.z = 2.5;
+
+    let renderer = new THREE.WebGLRenderer({ canvas: document.querySelector('#webgl'), alpha: true, antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+    let ring;
+    const loader = new GLTFLoader();
+    loader.load('ring.glb', function (gltf) {
+      ring = gltf.scene;
+      scene.add(ring);
+    });
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      if (ring) {
+        let scrollY = window.scrollY / window.innerHeight;
+
+        // Fake splitting effect
+        ring.rotation.y += 0.005;
+        ring.position.y = Math.sin(scrollY * Math.PI) * 0.5;
+        ring.scale.setScalar(1 + scrollY * 0.2);
+
+        ring.traverse(child => {
+          if (child.isMesh && child.material.emissive) {
+            child.material.emissiveIntensity = 0.2 + Math.sin(scrollY * 3) * 0.3;
+          }
+        });
+
+        document.getElementById('overlay').style.opacity = Math.max(0, 1 - scrollY * 2);
+      }
+
+      renderer.render(scene, camera);
+    }
+
+    animate();
+  </script>
+</body>
+</html>
